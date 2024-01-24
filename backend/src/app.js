@@ -1,6 +1,7 @@
 // Load the express module to create a web application
 
 const express = require("express");
+const path = require("path");
 
 const app = express();
 
@@ -93,7 +94,9 @@ app.use("/api", router);
 // Production-ready setup: What is it for, and when should I enable it?
 
 // The code includes commented sections to set up a production environment where the frontend and backend are served from the same server.
-
+app.use("/public/*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../", req.originalUrl));
+});
 // What it's for:
 // - Serving frontend static files from the backend, which is useful when building a single-page application with React, Angular, etc.
 // - Redirecting unhandled requests (e.g., all requests not matching a defined API route) to the frontend's index.html. This allows the frontend to handle client-side routing.
@@ -105,8 +108,7 @@ app.use("/api", router);
 // 1. Uncomment the lines related to serving static files and redirecting unhandled requests.
 // 2. Ensure that the `reactBuildPath` points to the correct directory where your frontend's build artifacts are located.
 
-/*
-const reactBuildPath = `${__dirname}/../../frontend/dist`;
+const reactBuildPath = path.resolve(`${__dirname}/../../frontend/dist`);
 
 // Serve react resources
 
@@ -117,7 +119,6 @@ app.use(express.static(reactBuildPath));
 app.get("*", (req, res) => {
   res.sendFile(`${reactBuildPath}/index.html`);
 });
-*/
 
 /* ************************************************************************* */
 
