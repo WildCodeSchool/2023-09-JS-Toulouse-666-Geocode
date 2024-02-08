@@ -3,12 +3,22 @@
 /* ************************************************************************* */
 
 // Import the manager modules responsible for handling data operations on the tables
-const ItemManager = require("./models/ItemManager");
 const chargingStationManager = require("./models/chargingStationManager");
+const carManager = require("./models/carManager");
+const reservationManager = require("./models/ReservationManager");
+const userManager = require("./models/userManager");
+const contactManager = require("./models/contactManager");
+const brandManager = require("./models/brandManager");
+const plugManager = require("./models/plugManager");
 
 const managers = [
-  ItemManager,
   chargingStationManager,
+  carManager,
+  reservationManager,
+  userManager,
+  contactManager,
+  brandManager,
+  plugManager,
   // Add other managers here
 ];
 

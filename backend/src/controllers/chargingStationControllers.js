@@ -2,8 +2,23 @@ const tables = require("../tables");
 
 const browse = async (req, res, next) => {
   try {
-    const stations = await tables.charging_station.readAll();
-    res.json(stations);
+    let limit = parseInt(req.params.limit, 10) || 100; // Utilisez le paramètre limit, par défaut à 100 si non fourni ou s'il n'est pas un nombre valide
+
+    if (limit < 1) {
+      limit = 1;
+    }
+
+    const stations = await tables.charging_station.readAll({ limit });
+
+    const newStations = stations.map((row) => {
+      const newRow = { ...row };
+      newRow.adresse_station = Buffer.from(
+        newRow.adresse_station,
+        "latin1"
+      ).toString("utf8");
+      return newRow;
+    });
+    res.status(200).json(newStations);
   } catch (error) {
     next(error);
   }
@@ -12,10 +27,10 @@ const browse = async (req, res, next) => {
 const read = async (req, res, next) => {
   try {
     const station = await tables.charging_station.read(req.params.id);
-    if (station == null) {
+    if (!station) {
       res.sendStatus(404);
     } else {
-      res.json(station);
+      res.status(200).json(station);
     }
   } catch (error) {
     next(error);
@@ -38,10 +53,10 @@ const edit = async (req, res, next) => {
 const add = async (req, res, next) => {
   try {
     const station = await tables.charging_station.add(req.body);
-    if (station == null) {
+    if (!station) {
       res.sendStatus(404);
     } else {
-      res.status(201).json(station.insertID);
+      res.status(201).json(station);
     }
   } catch (error) {
     next(error);

@@ -6,34 +6,115 @@ const router = express.Router();
 // Define Your API Routes Here
 /* ************************************************************************* */
 
+// Import auth services for security operations
+const {
+  hashPassword,
+  verifyPassword,
+  verifyToken,
+  verifyTokenValid,
+  verifyPasswordActual,
+  missingElements,
+} = require("./services/auth");
+
 // Import itemControllers module for handling item-related operations
-const itemControllers = require("./controllers/itemControllers");
 
-// Route to get a list of items
-router.get("/items", itemControllers.browse);
-
-// Route to get a specific item by ID
-router.get("/items/:id", itemControllers.read);
-
-// Route to add a new item
-router.post("/items", itemControllers.add);
-
-/* ************************************************************************* */
-// Import chargingStationControllers module for handling operations
 const chargingStationControllers = require("./controllers/chargingStationControllers");
+const carControllers = require("./controllers/carControllers");
+const reservationControllers = require("./controllers/reservationControllers");
+const contactControllers = require("./controllers/contactControllers");
+const brandControllers = require("./controllers/brandControllers");
+const plugControllers = require("./controllers/plugControllers");
+
+// Import Middlewares
+const validateCar = require("./middlewares/validateCar");
+const validateUser = require("./middlewares/validateUser");
+const validateReservation = require("./middlewares/validateReservation");
+const validateChargingStation = require("./middlewares/validateChargingStation");
+const validateUserLogin = require("./middlewares/validateUserLogin");
+// Route to get a list of charging station
+router.get("/charging-stations", chargingStationControllers.browse);
+router.get("/charging-stations/:id", chargingStationControllers.read);
+router.put(
+  "/charging-stations/:id",
+  validateChargingStation,
+  chargingStationControllers.edit
+);
+router.post(
+  "/charging-stations/",
+  validateChargingStation,
+  chargingStationControllers.add
+);
+router.delete("/charging-stations/:id", chargingStationControllers.destroy);
+/* ************************************************************************* */
+
+// Import chargingStationControllers module for handling operations
+const userControllers = require("./controllers/userControllers");
+const validateMessage = require("./middlewares/validateMessage");
 
 // Route to get a list of charging station
-router.get("/charging-station", chargingStationControllers.browse);
+router.get("/users", verifyToken, userControllers.browse);
+router.get("/users/:id", verifyToken, userControllers.read);
+router.get("/users/:id/admin", verifyToken, userControllers.readIsAdmin);
+router.post("/users/", validateUser, hashPassword, userControllers.add);
+router.post(
+  "/users/login",
+  validateUserLogin,
+  userControllers.readByEmailAndPassToNext,
+  verifyPassword
+);
+router.put(
+  "/users/:id",
+  verifyToken,
+  validateUser,
+  hashPassword,
+  userControllers.edit
+);
+router.put(
+  "/loggedusers/:id",
 
-// Route to get a specific item by ID
-router.get("/charging-station/:id", chargingStationControllers.read);
+  verifyPasswordActual,
+  hashPassword,
+  missingElements,
+  userControllers.edit
+);
+router.delete("/users/:id", verifyToken, userControllers.destroy);
 
-router.put("/charging-station/:id", chargingStationControllers.edit);
+// Route to get a list of cars
+router.get("/cars", verifyToken, carControllers.browse);
+router.get("/cars/:id", verifyToken, carControllers.read);
+router.get("/cars-user/:id", verifyToken, carControllers.readCar);
+router.put("/cars/:id", validateCar, carControllers.edit);
+router.post("/cars/", validateCar, carControllers.add);
+router.delete("/cars/:id", verifyToken, carControllers.destroy);
 
-// Route to add a new item
-router.post("/charging-station/", chargingStationControllers.add);
+// Route to get a list of reservations
+router.get("/reservations", reservationControllers.browse);
+router.get("/reservations/:id", reservationControllers.read);
+router.get(
+  "/users/:id/reservations",
+  reservationControllers.readUserReservations
+);
+router.put(
+  "/reservations/:id",
+  validateReservation,
+  reservationControllers.edit
+);
+router.post("/reservations/", reservationControllers.add);
+router.delete("/reservations/:id", reservationControllers.destroy);
 
-router.delete("/charging-station/:id", chargingStationControllers.destroy);
-/* ************************************************************************* */
+// Route to get a list of cars
+router.get("/contacts", contactControllers.browse);
+router.get("/contacts/:id", contactControllers.read);
+router.post("/contacts", validateMessage, contactControllers.add);
+router.put("/contacts/:id", validateMessage, contactControllers.edit);
+router.delete("/contacts/:id", verifyToken, contactControllers.destroy);
+router.get("/verify-token", verifyTokenValid, (req, res) => {
+  // Si le middleware passe, vous pouvez renvoyer une réponse appropriée
+  res.status(200).json({ token: req.user });
+});
+// Route to get a list of brands
+router.get("/brands", brandControllers.browse);
 
+// Route to get a list of plug
+router.get("/plugs", plugControllers.browse);
 module.exports = router;
